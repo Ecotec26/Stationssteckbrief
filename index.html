@@ -48,6 +48,9 @@ textarea{resize:vertical;min-height:40px;overflow:hidden}
 input:focus,textarea:focus,.btn:focus-visible,.ynb:focus-visible{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal)}
 .invalid{border-color:var(--warn)!important;background:#fff6f5!important}
 .yn{display:flex;gap:6px}
+.ynrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ynrow .ynext{flex:1 1 110px;width:auto;min-width:0}
+input::placeholder,textarea::placeholder{color:#8a9796;opacity:1}
 .ynb{min-width:68px;padding:8px 12px;border:1px solid #c4cfce;background:#fff;border-radius:8px;cursor:pointer;font:inherit;color:var(--ink)}
 .ynb.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:600}
 .pwrow{display:flex;gap:6px}
@@ -89,6 +92,7 @@ dialog ul{margin:8px 0 14px;padding-left:20px}
 @media(pointer:coarse){
   input[type=text],input[type=date],input[type=password],textarea{font-size:16px}
   .btn,.ynb,.tab{min-height:44px}
+  .ynrow .ynext{min-height:44px}
   .btn.small{min-height:36px}
   .chk{min-height:44px}
   .chk input{width:22px;height:22px}
@@ -204,21 +208,21 @@ var BLOCKS=[
   ['keilriemen','Keilriemen (Art.-Nr.)'],['oelsorte','Ölsorte','text',{list:'dl-oel'}],['oelmenge','Ölmenge (Liter)'],
   ['ersatz','Sonstige Ersatzteile (Bezeichnung / Art.-Nr.)','area'],BEM]},
  {key:'trockner',title:'Trockner',item:'Trockner',short:'Trockn.',numbered:true,start:1,fields:[H,M,['art','Art','text',{list:'dl-tart'}],S,BJ,['ersatz','Ersatzteile (Bezeichnung / Art.-Nr.)','area'],BEM]},
- {key:'filter',title:'Filtration',item:'Filter',short:'Filter',numbered:true,start:1,fields:[['art','Art','text',{list:'dl-fart'}],H,['typ','Typ'],['ersatz','Ersatzelement'],S,['ableiter','Ableiter'],BEM]},
- {key:'oel',title:'Öl-Wasser-Trenner',item:'Öl-Wasser-Trenner',short:'ÖWT',start:0,fields:[H,M,S,['ersatz','Ersatzteil'],BEM]},
- {key:'behaelter',title:'Druckluftbehälter',hint:'falls vorhanden',item:'Behälter',short:'Behälter',start:0,fields:[H,M,S,['papiere','Papiere vorhanden','yn'],['groesse','Behältergröße'],['tuev','Letzter TÜV'],['ableiter','Ableiter'],BEM]},
- {key:'sonder',title:'Sondergeräte',hint:'wie Bekokat, Membrantrockner etc.',item:'Sondergerät',short:'Sondergerät',start:0,fields:[H,M,S,['ersatz','Ersatzteile'],BEM]},
- {key:'steuerung',title:'Übergeordnete Steuerung',item:'Steuerung',short:'Steuerung',start:0,fields:[H,M,S,['ersatz','Ersatzteile'],BEM]}
+ {key:'filter',title:'Filtration',item:'Filter',short:'Filter',numbered:true,start:1,fields:[['art','Art','text',{list:'dl-fart'}],H,['typ','Typ'],['ersatz','Ersatzelement'],S,BJ,['ableiter','Ableiter'],BEM]},
+ {key:'oel',title:'Öl-Wasser-Trenner',item:'Öl-Wasser-Trenner',short:'ÖWT',start:0,fields:[H,M,S,BJ,['ersatz','Ersatzteil'],BEM]},
+ {key:'behaelter',title:'Druckluftbehälter',hint:'falls vorhanden',item:'Behälter',short:'Behälter',start:0,fields:[H,M,S,BJ,['papiere','Papiere vorhanden','yn'],['groesse','Behältergröße'],['tuev','Letzter TÜV'],['ableiter','Ableiter'],BEM]},
+ {key:'sonder',title:'Sondergeräte',hint:'wie Bekokat, Membrantrockner etc.',item:'Sondergerät',short:'Sondergerät',start:0,fields:[H,M,S,BJ,['ersatz','Ersatzteile'],BEM]},
+ {key:'steuerung',title:'Übergeordnete Steuerung',item:'Steuerung',short:'Steuerung',start:0,fields:[H,M,S,BJ,['ersatz','Ersatzteile'],BEM]}
 ];
 var SINGLES=[
- {key:'rohr',title:'Rohrleitung',fields:[['material','Materialbeschaffenheit'],['dn','Querschnitt (DN o. Zoll)'],BEM]}
+ {key:'rohr',title:'Rohrleitung',fields:[['material','Materialbeschaffenheit'],['dn','Querschnitt (DN o. Zoll)'],BJ,BEM]}
 ];
 var UMG_FIELDS=[['temp','Raumtemperatur'],['schmutz','Schmutzbelastung'],['zuluft','Zuluft vorhanden','yn'],['abluft','Abluft vorhanden','yn'],BEM];
 var KUNDE_FIELDS=[
  ['kunde','Kunde','text',{req:1}],['adresse','Adresse','text',{req:1}],
  ['ansprech','Ansprechpartner','text',{req:1}],['ansprechKontakt','Tel./E-Mail (Ansprechpartner)','text',{req:1}],
  ['vertretung','Vertretung'],['vertretungKontakt','Tel./E-Mail (Vertretung)'],
- ['wv','WV-Kunde','yn'],['rundgaenge','Rundgänge','yn'],
+ ['wv','WV-Kunde','yn',{ext:{key:'wvStunden',ph:'Stunden',print:'Stunden'}}],['rundgaenge','Rundgänge','yn',{ext:{key:'rundgaengeOft',ph:'Wie oft',print:'Wie oft'}}],
  ['techniker','Techniker','text',{req:1}],['technikerVertr','Technikervertretung'],
  ['vertrieb','Vertrieb'],['miet','Mietmaschine für Wartung notwendig','yn'],
  ['mietWelche','Wenn ja, folgende'],
@@ -247,6 +251,7 @@ function newStation(){
 }
 function newState(){
   var k={};KUNDE_FIELDS.concat(DOC_FIELDS).forEach(function(f){k[f[0]]='';});
+  k.wvStunden='';k.rundgaengeOft='';
   k.datum=today();
   return {kunde:k,stationen:[newStation()],aktiv:0};
 }
@@ -279,7 +284,7 @@ function getP(path){return path.reduce(function(o,k){return o==null?o:o[k];},sta
 function setP(path,v){var parent=getP(path.slice(0,-1));if(parent!=null)parent[path[path.length-1]]=v;}
 
 var saveT=null;
-function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(function(){try{localStorage.setItem(LS_KEY,JSON.stringify({t:Date.now(),daten:forStorage(state)}));}catch(e){}},500);}
+function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(function(){warmFotos();try{localStorage.setItem(LS_KEY,JSON.stringify({t:Date.now(),daten:forStorage(state)}));}catch(e){}},500);}
 
 /* ---------- Bildschirm ---------- */
 function fieldHTML(f,path,val){
@@ -291,6 +296,10 @@ function fieldHTML(f,path,val){
     inner='<textarea id="'+id+'" rows="2" data-p="'+p+'" placeholder="'+esc(o.ph||'')+'">'+esc(val)+'</textarea>';
   }else if(type==='yn'){
     inner='<div class="yn" role="group" aria-label="'+esc(label)+'">'+['Ja','Nein'].map(function(v){return '<button type="button" class="ynb'+(val===v?' on':'')+'" data-yn="'+p+'" data-v="'+v+'" aria-pressed="'+(val===v)+'">'+v+'</button>';}).join('')+'</div>';
+    if(o.ext){
+      var ep=esc(path.slice(0,-1).concat(o.ext.key).join('|')),ev=getP(path.slice(0,-1).concat(o.ext.key));
+      inner='<div class="ynrow">'+inner+'<input type="text" class="ynext" id="'+id+'x" aria-label="'+esc(label+' – '+o.ext.ph)+'" autocomplete="off" autocorrect="off" spellcheck="false" data-p="'+ep+'" value="'+esc(ev||'')+'" placeholder="'+esc(o.ext.ph)+'"></div>';
+    }
   }else if(type==='pw'){
     inner='<div class="pwrow"><input id="'+id+'" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-p="'+p+'" value="'+esc(val)+'"><button type="button" class="btn small" data-showpw="'+id+'">Anzeigen</button></div>';
   }else{
@@ -474,6 +483,31 @@ function missing(){
 function markMissing(){
   document.querySelectorAll('#app [data-req]').forEach(function(el){if(!el.value.trim())el.classList.add('invalid');});
 }
+/* Fotos aller Stationen vorab laden und dekodieren – sonst fehlen im Druck (v. a. iOS/Safari) Bilder, die gerade nicht auf dem Bildschirm sichtbar sind */
+var fotoCache={};
+function allFotoSrc(){var a=[];state.stationen.forEach(function(s){s.fotos.forEach(function(f){a.push(f.src);});});return a;}
+function warmFotos(){
+  var srcs=allFotoSrc(),next={},ps=[];
+  srcs.forEach(function(src){
+    if(next[src])return;
+    if(fotoCache[src]){next[src]=fotoCache[src];ps.push(next[src].p);return;}
+    var im=new Image(),p=new Promise(function(res){
+      im.onload=im.onerror=function(){res();};
+      im.decoding='sync';im.src=src;
+      if(im.decode)im.decode().then(res,res);
+    });
+    next[src]={im:im,p:p};ps.push(p);
+  });
+  fotoCache=next; /* nicht mehr benötigte Fotos werden freigegeben */
+  return Promise.all(ps);
+}
+function waitPrintImages(){
+  var imgs=Array.prototype.slice.call(document.querySelectorAll('#print img'));
+  return Promise.all(imgs.map(function(im){
+    if(im.complete&&im.naturalWidth>0)return im.decode?im.decode().catch(function(){}):0;
+    return new Promise(function(res){im.onload=im.onerror=function(){res();};}).then(function(){return im.decode?im.decode().catch(function(){}):0;});
+  }));
+}
 var oldTitle=null;
 function fileName(){return 'Stationssteckbrief_'+(san(state.kunde.kunde)||'Kunde')+'_'+(state.kunde.datum||today());}
 function preparePrint(){
@@ -490,17 +524,31 @@ function doPrint(force){
     var d=$('#dlg');if(d.showModal)d.showModal();else if(confirm('Pflichtfelder fehlen:\n- '+m.join('\n- ')+'\n\nTrotzdem drucken?'))doPrint(true);
     return;
   }
-  preparePrint();window.print();
+  if(printing)return;printing=true;
+  var btn=$('#bPrint'),lbl=btn.textContent;btn.disabled=true;btn.textContent='Fotos werden vorbereitet …';
+  preparePrint();
+  var done=function(){
+    /* zwei Frames warten, damit der Browser die Druckansicht fertig aufgebaut hat */
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      btn.disabled=false;btn.textContent=lbl;printing=false;window.print();
+    });});
+  };
+  Promise.race([Promise.all([warmFotos(),waitPrintImages()]),new Promise(function(r){setTimeout(r,8000);})]).then(done,done);
 }
+var printing=false;
 $('#bPrint').addEventListener('click',function(){doPrint(false);});
 $('#dBack').addEventListener('click',function(){$('#dlg').close();markMissing();var f=document.querySelector('#app .invalid');if(f){f.scrollIntoView({block:'center'});f.focus({preventScroll:true});}});
 $('#dForce').addEventListener('click',function(){$('#dlg').close();doPrint(true);});
 
 /* ---------- Druckansicht ---------- */
-function pField(f,val,pw,full){
+function pField(f,val,pw,full,extVal){
   if((f[2]||'')==='head')return '<div class="pf full phead">'+esc(f[1])+'</div>';
   var label=f[1],type=f[2]||'text',cls='pf'+((full||type==='area')?' full':'');
-  if(type==='yn')return '<div class="'+cls+'"><span class="pl">'+esc(label)+'</span><span class="pyn"><i class="bx'+(val==='Ja'?' on':'')+'"></i>Ja<i class="bx'+(val==='Nein'?' on':'')+'"></i>Nein</span></div>';
+  if(type==='yn'){
+    var ynh='<span class="pyn"><i class="bx'+(val==='Ja'?' on':'')+'"></i>Ja<i class="bx'+(val==='Nein'?' on':'')+'"></i>Nein</span>';
+    if(f[3]&&f[3].ext)ynh+='<span class="pl">'+esc(f[3].ext.print)+':</span><span class="pv">'+esc(extVal||'')+'</span>';
+    return '<div class="'+cls+'"><span class="pl">'+esc(label)+'</span>'+ynh+'</div>';
+  }
   var v=val,mut='';
   if(type==='pw'&&!pw){v=val?'— nicht gedruckt —':'';mut=val?' muted':'';}
   if(type==='date'&&val)v=val.split('-').reverse().join('.');
@@ -532,7 +580,7 @@ function buildPrint(){
   rows.forEach(function(r){
     r.forEach(function(key){
       if(key===null){h+='<div></div>';return;}
-      h+=pField(KF[key],k[key],pw,r.length===1);
+      h+=pField(KF[key],k[key],pw,r.length===1,(KF[key][3]&&KF[key][3].ext)?k[KF[key][3].ext.key]:undefined);
     });
   });
   h+='</div><h2 class="sec gap">Bemerkung zu Kundendaten</h2><div class="pnote">'+esc(k.bem)+'</div>';
@@ -587,7 +635,7 @@ try{
   if(raw){var o=JSON.parse(raw);state=adopt(o.daten);restoredAt=o.t;bannerOpen=true;}
 }catch(e){state=null;}
 if(!state)state=newState();
-window.__stb={get state(){return state;},buildPrint:buildPrint,render:render,adopt:adopt,set:function(s){state=adopt(s);render();}};
+window.__stb={get state(){return state;},buildPrint:buildPrint,render:render,adopt:adopt,warm:warmFotos,set:function(s){state=adopt(s);render();warmFotos();}};
 render();
 })();
 </script>

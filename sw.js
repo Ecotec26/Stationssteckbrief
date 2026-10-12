@@ -1,5 +1,5 @@
 /* Stationssteckbrief – Offline-Cache: lädt immer zuerst die neueste Version, bei fehlendem Netz die zuletzt gespeicherte. */
-var CACHE='steckbrief-v3';
+var CACHE='steckbrief-v5';
 var FILES=['./','index.html','manifest.webmanifest','icon-192.png','apple-touch-icon.png'];
 self.addEventListener('install',function(e){
   e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(FILES);}).then(function(){return self.skipWaiting();}));
