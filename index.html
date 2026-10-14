@@ -63,6 +63,7 @@ input::placeholder,textarea::placeholder{color:#8a9796;opacity:1}
 .item{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;background:#fbfdfd}
 .item-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-weight:600}
 .row-end{display:flex;justify-content:flex-end;margin-top:14px}
+.banner.warn{background:#fff1ee;border-color:#f0b4a8}
 .banner{background:#fff8e6;border:1px solid #f0d58a;border-radius:10px;padding:10px 14px;margin:14px 0 0;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:14px}
 .help{color:var(--mut);font-size:13px;margin:18px 2px 0}
 dialog{border:1px solid var(--line);border-radius:14px;padding:20px 22px;max-width:440px;width:calc(100% - 32px)}
@@ -137,6 +138,7 @@ dialog ul{margin:8px 0 14px;padding-left:20px}
   .pnote{min-height:38mm;border:.3mm solid #bbb;padding:2mm;white-space:pre-wrap;overflow-wrap:anywhere}
   .gap{margin-top:7mm}
   .pph{display:grid;grid-template-columns:1fr 1fr;gap:4mm 6mm}
+  .pdata{margin-top:1mm;font:1px/1px Arial,sans-serif;color:#fff;break-inside:avoid;overflow-wrap:anywhere;word-break:break-all;-webkit-user-select:none;user-select:none}
   .pfig{margin:0;break-inside:avoid}
   .pfig img{display:block;width:100%;max-height:78mm;object-fit:contain;object-position:left top;border:.3mm solid #ccc}
   .pfig figcaption{font-size:8.5pt;color:#333;margin-top:1mm;min-height:3mm;overflow-wrap:anywhere}
@@ -149,20 +151,19 @@ dialog ul{margin:8px 0 14px;padding-left:20px}
     <div class="brand"><img id="logo" alt="ecotec"><b>Stationssteckbrief</b></div>
     <div class="actions">
       <button class="btn" id="bNew" type="button">Neu</button>
-      <button class="btn" id="bLoad" type="button" title="Gespeicherten Entwurf (.json) öffnen">Entwurf laden</button>
-      <button class="btn" id="bSave" type="button" title="Zwischenstand als Datei sichern (inkl. Passwörter und Fotos)">Entwurf speichern</button>
+      <button class="btn" id="bLoad" type="button" title="Steckbrief-PDF öffnen und in der Maske weiterbearbeiten">PDF laden</button>
       <button class="btn" id="bBrand" type="button" title="Hersteller-Vorschlagsliste ergänzen">Hersteller-Liste</button>
       <label class="chk"><input type="checkbox" id="chkPw" checked> Passwörter mitdrucken</label>
       <button class="btn primary" id="bPrint" type="button">Drucken / als PDF speichern</button>
     </div>
   </div>
   <main id="app"></main>
-  <main><p class="help">PDF erzeugen: auf „Drucken / als PDF speichern“ klicken und im Druckdialog als Drucker „Als PDF speichern“ wählen. Das PDF dann im Teams-Kanal ablegen.</p>
-<p class="help ios-help"><b>iPhone / iPad:</b> Nach „Drucken / als PDF speichern“ erscheint die Druckvorschau. Die Vorschau der ersten Seite mit zwei Fingern aufziehen, oben rechts auf Teilen tippen und „In Dateien sichern“ wählen. Das PDF dann im Teams-Kanal ablegen.<br>Entwürfe zwischendurch mit „Entwurf speichern“ als Datei sichern. Der automatische Zwischenspeicher des Browsers wird von iOS nach längerer Nichtnutzung gelöscht.</p></main>
+  <main><p class="help">PDF erzeugen: auf „Drucken / als PDF speichern“ klicken und im Druckdialog als Drucker „Als PDF speichern“ wählen. Das PDF dann im Teams-Kanal ablegen. Mit „PDF laden“ lässt sich ein so erzeugtes PDF später wieder öffnen und weiterbearbeiten. Zum Zwischenspeichern einfach drucken und als PDF sichern.</p>
+<p class="help ios-help"><b>iPhone / iPad:</b> Nach „Drucken / als PDF speichern“ erscheint die Druckvorschau. Die Vorschau der ersten Seite mit zwei Fingern aufziehen, oben rechts auf Teilen tippen und „In Dateien sichern“ wählen. Das PDF dann im Teams-Kanal ablegen.<br>Zwischenstände als PDF sichern (drucken, „In Dateien sichern“) und später mit „PDF laden“ öffnen. Der automatische Zwischenspeicher des Browsers wird von iOS nach längerer Nichtnutzung gelöscht.</p></main>
 </div>
 <div id="print"></div>
 
-<input type="file" id="fLoad" accept=".json,application/json" hidden>
+<input type="file" id="fLoad" accept=".pdf,application/pdf,.json,application/json" hidden>
 <input type="file" id="fFoto" accept="image/*" multiple hidden>
 <datalist id="dl-herst"></datalist>
 <datalist id="dl-kart"><option value="Schraubenkompressor"><option value="Kolbenkompressor"><option value="Scrollkompressor"><option value="Drehschieberkompressor"><option value="Turbokompressor"></datalist>
@@ -210,7 +211,7 @@ var BLOCKS=[
  {key:'trockner',title:'Trockner',item:'Trockner',short:'Trockn.',numbered:true,start:1,fields:[H,M,['art','Art','text',{list:'dl-tart'}],S,BJ,['ersatz','Ersatzteile (Bezeichnung / Art.-Nr.)','area'],BEM]},
  {key:'filter',title:'Filtration',item:'Filter',short:'Filter',numbered:true,start:1,fields:[['art','Art','text',{list:'dl-fart'}],H,['typ','Typ'],['ersatz','Ersatzelement'],S,BJ,['ableiter','Ableiter'],BEM]},
  {key:'oel',title:'Öl-Wasser-Trenner',item:'Öl-Wasser-Trenner',short:'ÖWT',start:0,fields:[H,M,S,BJ,['ersatz','Ersatzteil'],BEM]},
- {key:'behaelter',title:'Druckluftbehälter',hint:'falls vorhanden',item:'Behälter',short:'Behälter',start:0,fields:[H,M,S,BJ,['papiere','Papiere vorhanden','yn'],['groesse','Behältergröße'],['tuev','Letzter TÜV'],['ableiter','Ableiter'],BEM]},
+ {key:'behaelter',title:'Druckluftbehälter',hint:'falls vorhanden',item:'Behälter',short:'Behälter',start:0,fields:[H,M,S,BJ,['papiere','Papiere vorhanden','yn'],['groesse','Behältergröße'],['druck','Druck'],['tuev','Letzter TÜV'],['ableiter','Ableiter'],BEM]},
  {key:'sonder',title:'Sondergeräte',hint:'wie Bekokat, Membrantrockner etc.',item:'Sondergerät',short:'Sondergerät',start:0,fields:[H,M,S,BJ,['ersatz','Ersatzteile'],BEM]},
  {key:'steuerung',title:'Übergeordnete Steuerung',item:'Steuerung',short:'Steuerung',start:0,fields:[H,M,S,BJ,['ersatz','Ersatzteile'],BEM]}
 ];
@@ -240,7 +241,7 @@ function toast(msg){var t=$('#toast');t.textContent=msg;t.classList.add('show');
 try{localStorage.removeItem(LS_USER);}catch(e){}  /* früher gemerkte Namen (Ersteller/Techniker) löschen */
 
 /* ---------- Zustand ---------- */
-var state=null, uid=0, restoredAt=null, bannerOpen=false;
+var state=null, uid=0, restoredAt=null, bannerOpen=false, loadNote=null;
 function newItem(b){var o={};b.fields.forEach(function(f){o[f[0]]='';});return o;}
 function newStation(){
   var s={name:'',blocks:{},fotos:[],umgebung:{}};
@@ -284,7 +285,7 @@ function getP(path){return path.reduce(function(o,k){return o==null?o:o[k];},sta
 function setP(path,v){var parent=getP(path.slice(0,-1));if(parent!=null)parent[path[path.length-1]]=v;}
 
 var saveT=null;
-function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(function(){warmFotos();try{localStorage.setItem(LS_KEY,JSON.stringify({t:Date.now(),daten:forStorage(state)}));}catch(e){}},500);}
+function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(function(){warmFotos();refreshPayload();try{localStorage.setItem(LS_KEY,JSON.stringify({t:Date.now(),daten:forStorage(state)}));}catch(e){}},500);}
 
 /* ---------- Bildschirm ---------- */
 function fieldHTML(f,path,val){
@@ -330,6 +331,9 @@ function fotosHTML(si){
 }
 function render(){
   var y=window.scrollY,si=state.aktiv,s=state.stationen[si],h='';
+  if(loadNote){
+    h+='<div class="banner'+(loadNote.warn?' warn':'')+'"><span>'+loadNote.html+'</span><button class="btn small" type="button" id="bNoteOk">OK</button></div>';
+  }
   if(restoredAt&&bannerOpen){
     var d=new Date(restoredAt);
     h+='<div class="banner"><span>Entwurf vom '+d.toLocaleDateString('de-DE')+' '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' wiederhergestellt. Passwörter und Fotos werden nicht im Browser zwischengespeichert und müssen neu eingetragen bzw. hinzugefügt werden.</span><button class="btn small" type="button" id="bDismiss">Verwerfen und neu beginnen</button></div>';
@@ -400,46 +404,52 @@ document.addEventListener('click',function(e){
 });
 function discardDraft(){
   try{localStorage.removeItem(LS_KEY);}catch(e){}
-  state=newState();restoredAt=null;bannerOpen=false;render();window.scrollTo(0,0);
+  state=newState();restoredAt=null;bannerOpen=false;loadNote=null;render();window.scrollTo(0,0);
 }
 
 $('#bNew').addEventListener('click',function(){if(confirm('Alle Eingaben löschen und neu beginnen?'))discardDraft();});
 $('#bLoad').addEventListener('click',function(){$('#fLoad').click();});
-$('#fLoad').addEventListener('change',function(){
-  var f=this.files&&this.files[0];if(!f)return;
+function hasContent(){
+  var k=state.kunde,filled=Object.keys(k).some(function(x){return x!=='datum'&&String(k[x]).trim();});
+  if(filled||state.stationen.length>1)return true;
+  var s=state.stationen[0];
+  return !!(s.name.trim()||s.fotos.length||Object.keys(s.umgebung).some(function(x){return String(s.umgebung[x]).trim();})||BLOCKS.some(function(b){return s.blocks[b.key].some(function(it){return Object.keys(it).some(function(x){return String(it[x]).trim();});});}));
+}
+function setLoaded(st,note){state=st;restoredAt=null;bannerOpen=false;loadNote=note;render();window.scrollTo(0,0);scheduleSave();}
+function loadJsonFile(f){
   var r=new FileReader();
   r.onload=function(){
-    try{var o=JSON.parse(r.result);state=adopt(o.daten||o);restoredAt=null;bannerOpen=false;render();window.scrollTo(0,0);scheduleSave();toast('Entwurf geladen.');}
+    try{var o=JSON.parse(r.result);setLoaded(adopt(o.daten||o),{html:'Entwurf (.json) geladen.'});}
     catch(err){toast('Diese Datei ist kein gültiger Entwurf.');}
   };
-  r.readAsText(f);this.value='';
+  r.readAsText(f);
+}
+function loadPdfFile(f){
+  if(hasContent()&&!confirm('Die aktuellen Eingaben werden durch den Inhalt der PDF ersetzt. Fortfahren?'))return;
+  var btn=$('#bLoad'),lbl=btn.textContent;btn.disabled=true;btn.textContent='PDF wird gelesen …';
+  readPdf(f).then(function(r){
+    var name=esc(f.name),i=r.info,h,warn=false;
+    if(r.mode==='exakt'){
+      h='<b>'+name+'</b> geladen – alle Angaben aus der PDF wiederhergestellt'+(i.photos?', '+i.photos+' Foto'+(i.photos>1?'s':''):'')+'.';
+      if(i.photoMismatch){h+=' <b>Die Fotos konnten nicht zugeordnet werden</b> und müssen neu hinzugefügt werden.';warn=true;}
+    }else{
+      warn=true;
+      h='<b>'+name+'</b> enthält keine gespeicherten Daten und wurde per Texterkennung gelesen ('+i.recognized+' Felder'+(i.photos?', '+i.photos+' Foto'+(i.photos>1?'s':''):'')+'). <b>Bitte alle Angaben prüfen</b>, insbesondere Ja/Nein-Felder, Sonderzeichen (mit „?“ markiert) und Passwörter, falls sie nicht mitgedruckt waren.';
+      if(i.unknown&&i.unknown.length)h+=' Nicht zuordenbar: '+i.unknown.slice(0,6).map(esc).join(', ')+(i.unknown.length>6?' …':'')+'.';
+    }
+    setLoaded(r.state,{html:h,warn:warn});
+  }).catch(function(err){
+    try{console.error('PDF-Fehler',err&&err.message||err);}catch(e){}
+    toast((location.protocol==='file:')?'Der PDF-Reader funktioniert nur in der online bereitgestellten Version (https), nicht aus einer lokalen Datei.':'Diese PDF konnte nicht gelesen werden.');
+  }).then(function(){btn.disabled=false;btn.textContent=lbl;});
+}
+$('#fLoad').addEventListener('change',function(){
+  var f=this.files&&this.files[0];this.value='';if(!f)return;
+  if(/\.json$/i.test(f.name)||f.type==='application/json')loadJsonFile(f);else loadPdfFile(f);
 });
+document.addEventListener('click',function(e){if(e.target&&e.target.id==='bNoteOk'){loadNote=null;render();}});
 function isIOS(){return /iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
 if(isIOS())document.documentElement.classList.add('is-ios');
-function downloadBlob(blob,name){
-  var a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);a.download=name;a.target='_self';
-  document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},4000);
-}
-$('#bSave').addEventListener('click',function(){
-  var data={app:'Stationssteckbrief',schema:1,gespeichert:new Date().toISOString(),daten:JSON.parse(JSON.stringify(state))};
-  var name='Entwurf_'+(san(state.kunde.kunde)||'Steckbrief')+'_'+(state.kunde.datum||today())+'.json';
-  var text=JSON.stringify(data,null,1),warn='Die Datei enthält Passwörter und Fotos – nur im Technik-Kanal ablegen.';
-  if(isIOS()&&navigator.share&&window.File){
-    /* iPhone/iPad: Teilen-Menü („In Dateien sichern“), da Safari Downloads per Skript unzuverlässig speichert */
-    var file=new File([text],name,{type:'application/json'});
-    if(!navigator.canShare||navigator.canShare({files:[file]})){
-      navigator.share({files:[file],title:name}).then(function(){toast('Entwurf gespeichert. '+warn);},function(err){
-        if(err&&err.name==='AbortError')return;
-        downloadBlob(new Blob([text],{type:'application/json'}),name);toast('Entwurf heruntergeladen. '+warn);
-      });
-      return;
-    }
-  }
-  downloadBlob(new Blob([text],{type:'application/json'}),name);
-  toast('Entwurf gespeichert. '+warn);
-});
-
 /* ---------- Fotos ---------- */
 var fotoTarget=0;
 function readImage(file){
@@ -472,6 +482,353 @@ $('#fFoto').addEventListener('change',function(){
     scheduleSave();
   });
 });
+
+/* ---------- PDF-Daten (unsichtbar im Druck) + PDF-Reader ---------- */
+var PDF_MARK='STB1',CHUNK=900,pdfPayload=null;
+function b64FromBytes(u8){var s='',i;for(i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s);}
+function bytesFromB64(b){var s=atob(b),u=new Uint8Array(s.length),i;for(i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u;}
+function viaStream(u8,Ctor){var st=new Ctor('deflate-raw'),w=st.writable.getWriter();w.write(u8);w.close();return new Response(st.readable).arrayBuffer().then(function(b){return new Uint8Array(b);});}
+function forPdf(pw){
+  var c=JSON.parse(JSON.stringify(state));delete c.aktiv;
+  c.stationen.forEach(function(s){
+    s.fotos=s.fotos.map(function(f){return {text:f.text};});
+    if(!pw)BLOCKS.forEach(function(b){b.fields.forEach(function(f){if(f[2]==='pw')s.blocks[b.key].forEach(function(it){it[f[0]]='';});});});
+  });
+  return c;
+}
+function packPayload(obj){
+  var raw=new TextEncoder().encode(JSON.stringify(obj));
+  if(window.CompressionStream)return viaStream(raw,CompressionStream).then(function(z){return 'z'+b64FromBytes(z);},function(){return 'r'+b64FromBytes(raw);});
+  return Promise.resolve('r'+b64FromBytes(raw));
+}
+function unpackPayload(str){
+  var mode=str.charAt(0),bytes=bytesFromB64(str.slice(1));
+  var p=(mode==='z')?(window.DecompressionStream?viaStream(bytes,DecompressionStream):Promise.reject(new Error('inflate'))):Promise.resolve(bytes);
+  return p.then(function(u){return JSON.parse(new TextDecoder().decode(u));});
+}
+/* Datenstand für den Druck bereithalten (asynchron wegen Kompression) */
+function refreshPayload(){
+  var pw=$('#chkPw').checked;
+  return packPayload(forPdf(pw)).then(function(p){pdfPayload=p;},function(){pdfPayload=null;});
+}
+function pad4(n){return String(n+10000).slice(1);}
+function pdfDataHTML(){
+  if(!pdfPayload)return '';
+  var n=Math.ceil(pdfPayload.length/CHUNK),h='<div class="pdata" aria-hidden="true"><div>~0000~'+PDF_MARK+':'+n+'</div>',i;
+  for(i=0;i<n;i++)h+='<div>~'+pad4(i+1)+'~'+pdfPayload.substr(i*CHUNK,CHUNK)+'</div>';
+  return h+'</div>';
+}
+/* --- Lesen --- */
+var pdfjsP=null;
+function loadPdfjs(){
+  if(!pdfjsP)pdfjsP=import('./pdf.min.mjs').then(function(m){m.GlobalWorkerOptions.workerSrc=new URL('pdf.worker.min.mjs',location.href).href;return m;});
+  return pdfjsP;
+}
+function openPdf(file){
+  return file.arrayBuffer().then(function(buf){
+    return loadPdfjs().then(function(lib){
+      return lib.getDocument({data:new Uint8Array(buf)}).promise.then(function(doc){
+        var ps=[],i;for(i=1;i<=doc.numPages;i++)ps.push(doc.getPage(i));
+        return Promise.all(ps).then(function(pages){
+          return Promise.all(pages.map(function(p){return p.getTextContent().then(function(tc){return {page:p,items:tc.items.filter(function(it){return typeof it.str==='string';})};});}));
+        }).then(function(pages){return {lib:lib,doc:doc,pages:pages};});
+      });
+    });
+  });
+}
+function findPayload(pdf){
+  /* Chrome/Skia kann eine lange Zeile in mehrere Textelemente teilen -> Bruchstücke wieder anfügen */
+  var map={},max=0,total=-1,cur=0;
+  pdf.pages.forEach(function(pg){cur=0;pg.items.forEach(function(it){
+    var m=/^\s*~(\d{4})~(.*?)\s*$/.exec(it.str);
+    if(m){
+      var k=+m[1];cur=0;
+      if(k===0){var t=/^STB1:(\d+)$/.exec(m[2]);if(t)total=+t[1];}else{map[k]=m[2];if(k>max)max=k;cur=k;}
+      return;
+    }
+    if(!cur)return;
+    var f=it.str.replace(/\s+/g,'');
+    if(!f)return;
+    if(!/^[A-Za-z0-9+\/=]+$/.test(f)||/=$/.test(map[cur])||map[cur].length>=CHUNK){cur=0;return;}
+    map[cur]+=f.slice(0,CHUNK-map[cur].length);
+  });});
+  if(total<1||max!==total)return null;
+  var out='',k;for(k=1;k<=total;k++){if(map[k]==null)return null;out+=map[k];}
+  return out;
+}
+function imageToJpeg(img){
+  var w=img.width,h=img.height,sc=Math.min(1,1600/Math.max(w,h)),c=document.createElement('canvas');
+  c.width=Math.round(w*sc);c.height=Math.round(h*sc);
+  var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
+  if(img.bitmap){x.drawImage(img.bitmap,0,0,c.width,c.height);}
+  else if(img.data){
+    var t=document.createElement('canvas');t.width=w;t.height=h;var tx=t.getContext('2d'),id=tx.createImageData(w,h),d=img.data,o=id.data,i,j;
+    if(d.length===w*h*4)o.set(d);
+    else if(d.length===w*h*3){for(i=0,j=0;i<d.length;i+=3,j+=4){o[j]=d[i];o[j+1]=d[i+1];o[j+2]=d[i+2];o[j+3]=255;}}
+    else{for(i=0;i<w*h;i++){var v=d[i]||0;o[i*4]=o[i*4+1]=o[i*4+2]=v;o[i*4+3]=255;}}
+    tx.putImageData(id,0,0);x.drawImage(t,0,0,c.width,c.height);
+  }else return null;
+  return c.toDataURL('image/jpeg',0.82);
+}
+function getObj(page,name){
+  return new Promise(function(res){
+    var done=false;function fin(v){if(!done){done=true;res(v);}}
+    try{(name.indexOf('g_')===0?page.commonObjs:page.objs).get(name,fin);}catch(e){fin(null);}
+    setTimeout(function(){fin(null);},6000);
+  });
+}
+/* Fotos aus den PDF-Bildern in Dokumentreihenfolge holen (ohne das Logo im Kopf jeder Seite) */
+function extractPhotos(pdf){
+  var OPS=pdf.lib.OPS,out=[];
+  return pdf.pages.reduce(function(p,pg){return p.then(function(){
+    return pg.page.getOperatorList().then(function(ol){
+      var names=[],i;for(i=0;i<ol.fnArray.length;i++)if(ol.fnArray[i]===OPS.paintImageXObject)names.push(ol.argsArray[i][0]);
+      return names.reduce(function(q,name){return q.then(function(){return getObj(pg.page,name).then(function(img){
+        if(!img||(img.width===341&&img.height===104))return;
+        var u=imageToJpeg(img);if(u)out.push(u);
+      });});},Promise.resolve());
+    });
+  });},Promise.resolve()).then(function(){return out;});
+}
+function applyPayload(obj,pdf){
+  var st=adopt(obj),exp=[],info={photos:0,photoMismatch:false};
+  (Array.isArray(obj.stationen)?obj.stationen:[]).forEach(function(ss,i){((ss&&ss.fotos)||[]).forEach(function(f){exp.push({si:i,text:str(f&&f.text)});});});
+  if(!exp.length)return Promise.resolve({state:st,info:info});
+  return extractPhotos(pdf).then(function(imgs){
+    if(imgs.length===exp.length){
+      exp.forEach(function(e,k){if(st.stationen[e.si])st.stationen[e.si].fotos.push({src:imgs[k],text:e.text});});
+      info.photos=imgs.length;
+    }else info.photoMismatch=true;
+    return {state:st,info:info};
+  });
+}
+/* --- Texterkennung für PDFs ohne eingebettete Daten (Layout dieser App) --- */
+function nk(t){return String(t).toLowerCase().replace(/[^a-z0-9äöüß]/g,'');}
+var LK=null;
+function lookups(){
+  if(LK)return LK;
+  LK={kunde:{},doc:{},umg:{},rohr:{}};
+  KUNDE_FIELDS.forEach(function(f){if(f[0]==='bem')return;LK.kunde[nk(f[1])]=f;if(f[3]&&f[3].ext)LK.kunde[nk(f[3].ext.print)]={ext:f[3].ext.key};});
+  DOC_FIELDS.forEach(function(f){LK.doc[nk(f[1])]=f;});
+  UMG_FIELDS.forEach(function(f){LK.umg[nk(f[1])]=f;});LK.umg.bemerkung=BEM;
+  SINGLES.forEach(function(sg){sg.fields.forEach(function(f){LK.rohr[nk(f[1])]=f;});LK.rohr.bemerkung=BEM;});
+  BLOCKS.forEach(function(b){var m={};b.fields.forEach(function(f){m[nk(f[1])]=f;});m.bemerkung=BEM;LK[b.key]=m;});
+  return LK;
+}
+function itemSize(it){return Math.hypot(it.transform[0],it.transform[1])||it.height||0;}
+function kindOf(sz){return sz>=12.5?'T':sz>=10.5?'S':sz>=9.9?'U':sz>=9.25?'V':sz>=8.9?'I':'L';}
+function joinItems(arr){
+  var t='',prev=null;
+  arr.forEach(function(it){
+    if(!it.str.trim()){if(t&&t.slice(-1)!==' ')t+=' ';return;}
+    if(prev){var gap=it.x-(prev.x+prev.w);if(gap>it.sz*0.28&&t.slice(-1)!==' ')t+=' ';}
+    t+=it.str;prev=it;
+  });
+  return t.replace(/\s+/g,' ').trim();
+}
+function matMul(m,n){return [m[0]*n[0]+m[1]*n[2],m[0]*n[1]+m[1]*n[3],m[2]*n[0]+m[3]*n[2],m[2]*n[1]+m[3]*n[3],m[4]*n[0]+m[5]*n[2]+n[4],m[4]*n[1]+m[5]*n[3]+n[5]];}
+/* Bilder samt Position (für Zuordnung zu Station und Beschriftung) */
+function imagesWithPos(pdf){
+  var OPS=pdf.lib.OPS,out=[];
+  return pdf.pages.reduce(function(p,pg,pi){return p.then(function(){
+    return pg.page.getOperatorList().then(function(ol){
+      var stack=[],ctm=[1,0,0,1,0,0],jobs=[],i;
+      for(i=0;i<ol.fnArray.length;i++){
+        var op=ol.fnArray[i],a=ol.argsArray[i];
+        if(op===OPS.save)stack.push(ctm.slice());
+        else if(op===OPS.restore){if(stack.length)ctm=stack.pop();}
+        else if(op===OPS.transform)ctm=matMul(a,ctm);
+        else if(op===OPS.paintImageXObject)jobs.push({name:a[0],m:ctm.slice()});
+      }
+      return jobs.reduce(function(q,j){return q.then(function(){return getObj(pg.page,j.name).then(function(img){
+        if(!img||(img.width===341&&img.height===104))return;
+        var u=imageToJpeg(img);if(!u)return;
+        var m=j.m,xs=[m[4],m[4]+m[0],m[4]+m[2],m[4]+m[0]+m[2]],ys=[m[5],m[5]+m[1],m[5]+m[3],m[5]+m[1]+m[3]];
+        out.push({src:u,page:pi,x0:Math.min.apply(null,xs),x1:Math.max.apply(null,xs),y0:Math.min.apply(null,ys),y1:Math.max.apply(null,ys)});
+      });});},Promise.resolve());
+    });
+  });},Promise.resolve()).then(function(){return out;});
+}
+/* Ja/Nein: angekreuzte Kästchen erkennt man nur am Bild – Seite rendern und die Kästchen abtasten */
+function detectYn(pdf,list){
+  var byPage={};list.forEach(function(e){(byPage[e.page]=byPage[e.page]||[]).push(e);});
+  return Object.keys(byPage).reduce(function(p,pk){return p.then(function(){
+    var pg=pdf.pages[+pk].page,vp=pg.getViewport({scale:3}),cv=document.createElement('canvas');
+    cv.width=Math.ceil(vp.width);cv.height=Math.ceil(vp.height);
+    var cx=cv.getContext('2d',{willReadFrequently:true});cx.fillStyle='#fff';cx.fillRect(0,0,cv.width,cv.height);
+    return pg.render({canvasContext:cx,viewport:vp}).promise.then(function(){
+      function dark(xt,yb){
+        var c=vp.convertToViewportPoint(xt-3.4-4.3,yb+2.6),px=Math.round(c[0]),py=Math.round(c[1]),r=Math.round(2.4*3),n=0,d=0,x,y,im=cx.getImageData(px-r,py-r,2*r+1,2*r+1).data,i;
+        for(i=0;i<im.length;i+=4){n++;if(Math.min(im[i],im[i+1],im[i+2])<190)d++;}
+        return n?d/n:0;
+      }
+      byPage[pk].forEach(function(e){
+        var ja=dark(e.xJa,e.y),ne=dark(e.xNein,e.y),v='';
+        if(ja>0.07&&ja>ne*2)v='Ja';else if(ne>0.07&&ne>ja*2)v='Nein';
+        e.set(v);
+      });
+    });
+  });},Promise.resolve());
+}
+function parseLegacy(pdf){
+  var TW=Date.now();
+  var L=lookups(),st=newState(),unknown=[],recognized=0,ynList=[],heads=[],ctx='',cur=null,lastTarget=null,lastY=null,lastPage=-1,blk=null,item=null,stIdx=-1,rows=[],pend=[[],[]],puaMap={};
+  st.stationen=[];st.kunde.datum='';
+  function newStat(){var s=newStation();BLOCKS.forEach(function(b){s.blocks[b.key]=[];});return s;}
+  /* 1. Zeilen je Seite bilden */
+  pdf.pages.forEach(function(pg,pi){
+    var W=pg.page.view[2],split=W*0.5125,its=[];
+    pg.items.forEach(function(it){
+      var sz=itemSize(it);if(sz<3||!it.str)return;
+      var k=kindOf(sz);if(k==='T')return;
+      if(sz<9&&(it.transform[5]<45||it.transform[5]>pg.page.view[3]-45))return; /* Browser-Kopf-/Fußzeile (Datum, Titel, Seitenzahl) */
+      its.push({str:it.str,x:it.transform[4],y:it.transform[5],w:it.width,sz:sz,k:k});
+    });
+    its.sort(function(a,b){return b.y-a.y;});
+    var groups=[];its.forEach(function(it){var g=groups[groups.length-1];if(g&&Math.abs(g.y-it.y)<=4)g.items.push(it);else groups.push({y:it.y,items:[it]});});
+    groups.forEach(function(g){g.items.sort(function(a,b){return a.x-b.x;});rows.push({page:pi,y:g.y,items:g.items,split:split});});
+  });
+  /* 2. Durchlauf */
+  function setField(target,f,val,extra){
+    if(!f)return;
+    if(f.ext){st.kunde[f.ext]=val;recognized++;return;}
+    var type=f[2]||'text';
+    if(type==='head')return;
+    if(type==='pw'&&/nichtgedruckt/.test(nk(val)))val='';
+    if(type==='date'&&/^\d{2}\.\d{2}\.\d{4}$/.test(val))val=val.split('.').reverse().join('-');
+    if(type==='yn'){ynList.push({page:extra.page,xJa:extra.xJa,xNein:extra.xNein,y:extra.y,set:function(v){target[f[0]]=v;}});recognized++;return;}
+    target[f[0]]=val;recognized++;
+  }
+  rows.forEach(function(r){
+    var kinds={};r.items.forEach(function(i){kinds[i.k]=1;});
+    if(kinds.S||kinds.U||(kinds.I&&!kinds.L&&!kinds.V))pend=[[],[]];
+    if(kinds.S||kinds.U){
+      var big=r.items.filter(function(i){return i.k==='S'||i.k==='U';}),txt=joinItems(big);
+      if(kinds.S){
+        var m=/^Kompressorstation\s*(\d+)/i.exec(txt);
+        if(m){
+          var s=newStat();
+          /* Stationsname: Text nach der großen Lücke hinter „Kompressorstation N“ */
+          var parts=[],cp=[],j;for(j=0;j<big.length;j++){if(!big[j].str.trim()&&big[j].w>15){if(cp.length){parts.push(cp);cp=[];}continue;}cp.push(big[j]);}if(cp.length)parts.push(cp);
+          s.name=parts.length>1?joinItems(parts[1]):'';
+          st.stationen.push(s);stIdx=st.stationen.length-1;ctx='station';blk=null;item=null;heads.push({page:r.page,y:r.y,si:stIdx});lastTarget=null;return;
+        }
+        var n=nk(txt);ctx=n==='kundendaten'?'kunde':n==='bemerkungzukundendaten'?'kbem':n==='dokument'?'doc':'';lastTarget=null;blk=null;item=null;return;
+      }
+      /* Zwischenüberschrift */
+      var n2=nk(txt);lastTarget=null;item=null;blk=null;
+      if(n2==='umgebungsbedingungen'){ctx='umg';return;}
+      if(n2==='fotos'){ctx='fotos';return;}
+      if(n2==='rohrleitung'){ctx='rohr';return;}
+      var hit=BLOCKS.filter(function(b){return nk(b.title)===n2;})[0];
+      if(hit){ctx=hit.key;blk=hit;return;}
+      return;
+    }
+    if(ctx==='fotos')return;
+    var cs=st.stationen[stIdx];
+    if(ctx==='kbem'){
+      var vt=joinItems(r.items.filter(function(i){return i.k==='V';}));
+      if(vt)st.kunde.bem+=(st.kunde.bem?'\n':'')+vt;
+      return;
+    }
+    if(kinds.I&&!kinds.L&&!kinds.V){ /* Gerätekopf (z. B. „Kompressor“) = neues Gerät */
+      if(blk&&cs){item=newItem(blk);cs.blocks[blk.key].push(item);}
+      lastTarget=null;return;
+    }
+    if(!ctx||ctx==='station')return;
+    /* Zielobjekt */
+    var tgt=null,map=null;
+    if(ctx==='kunde'){tgt=st.kunde;map=L.kunde;}
+    else if(ctx==='doc'){tgt=st.kunde;map=L.doc;}
+    else if(ctx==='umg'&&cs){tgt=cs.umgebung;map=L.umg;}
+    else if(ctx==='rohr'&&cs){tgt=cs.rohr;map=L.rohr;}
+    else if(blk&&cs){map=L[blk.key];if(!item){item=newItem(blk);cs.blocks[blk.key].push(item);}tgt=item;}
+    if(!tgt)return;
+    /* beide Spalten getrennt auswerten */
+    [r.items.filter(function(i){return i.x<r.split;}),r.items.filter(function(i){return i.x>=r.split;})].forEach(function(cell,ci){
+      if(!cell.length)return;
+      var hasL=cell.some(function(i){return i.k==='L'||i.k==='I';});
+      if(!hasL){ /* Wertzeilen oberhalb der Beschriftung (Beschriftung steht auf der letzten Zeile) */
+        var pl=pend[ci];if(pl.length&&(pl[pl.length-1].page!==r.page||pl[pl.length-1].y-r.y>15.5))pend[ci]=pl=[];
+        pl.push({page:r.page,y:r.y,text:joinItems(cell)});return;
+      }
+      var pt='',pp=pend[ci];
+      if(pp.length&&pp[pp.length-1].page===r.page&&pp[pp.length-1].y-r.y<=15.5&&pp[pp.length-1].y-r.y>5)pt=pp;
+      pend[ci]=[];
+      var runs=[],kcur=null;
+      cell.forEach(function(it){var kk=(it.k==='L'||it.k==='I')?'L':'V';if(!kcur||kcur.k!==kk){kcur={k:kk,items:[]};runs.push(kcur);}kcur.items.push(it);});
+      var label=null,lf=null;
+      function flush(valRun){
+        if(!label)return;
+        var f=lf,val=valRun?joinItems(valRun.items):'';
+        if(pt&&f){
+          var sep=((f[2]||'')==='area')?'\n':' ';
+          val=pt.map(function(q){return q.text;}).join(sep)+(val?sep+val:'');pt='';
+        }
+        if(f&&!f.ext){ /* verrutschte Sonderzeichen (fehlende Zeichenzuordnung im PDF) anhand bekannter Beschriftungen lernen */
+          var fo=label.replace(/\s/g,''),ex=f[1].replace(/\s/g,'');
+          if(fo.length===ex.length)for(var q2=0;q2<fo.length;q2++){var cc=fo.charAt(q2);if(cc>='\ue000'&&cc<='\uf8ff'&&!puaMap[cc])puaMap[cc]=ex.charAt(q2);}
+        }
+        if(!f){unknown.push(label);label=null;return;}
+        var key=f.ext?f.ext:f[0];
+        if(!f.ext&&(f[2]||'text')!=='yn'&&blk&&ctx===blk.key&&tgt[key]&&tgt[key]!==''&&tgt!==cs.rohr){ /* Feld schon belegt = nächstes Gerät */
+          item=newItem(blk);cs.blocks[blk.key].push(item);tgt=item;
+        }
+        var extra=null;
+        if(!f.ext&&(f[2]||'')==='yn'&&valRun){
+          var chars=[];valRun.items.forEach(function(it){if(!it.str.trim())return;var n=it.str.length,q;for(q=0;q<n;q++)chars.push({c:it.str.charAt(q),x:it.x+it.w*q/n});});
+          var s2=chars.map(function(c){return c.c;}).join(''),iN=s2.indexOf('Nein');
+          extra={page:r.page,y:valRun.items[0].y,xJa:chars.length?chars[0].x:0,xNein:iN>=0?chars[iN].x:(chars.length?chars[chars.length-1].x:0)};
+        }
+        setField(tgt,f,val,extra);
+        if(!f.ext){lastTarget={obj:tgt,key:key,area:(f[2]||'')==='area'};}
+        label=null;lf=null;
+      }
+      runs.forEach(function(run,ri){
+        if(run.k==='L'){flush(null);label=joinItems(run.items);lf=map[nk(label)]||null;}
+        else{flush(run);}
+      });
+      flush(null);
+    });
+    lastY=r.y;lastPage=r.page;
+  });
+  function fixPua(o){
+    Object.keys(o).forEach(function(k){
+      var v=o[k];
+      if(typeof v==='string')o[k]=v.replace(/[\ue000-\uf8ff]/g,function(c){return puaMap[c]||'?';});
+      else if(v&&typeof v==='object')fixPua(v);
+    });
+  }
+  fixPua(st.kunde);st.stationen.forEach(function(s){fixPua(s);});
+  /* Standard: mindestens ein Gerät bei Kompressoren/Trocknern/Filtern */
+  st.stationen.forEach(function(s){BLOCKS.forEach(function(b){if(b.start>=1&&!s.blocks[b.key].length)s.blocks[b.key].push(newItem(b));});});
+  if(!st.stationen.length)st.stationen=[newStation()];
+  if(!st.kunde.datum)st.kunde.datum=today();
+  var info={photos:0,photoMismatch:false,unknown:unknown,recognized:recognized,yn:ynList.length,t:{walk:Date.now()-TW}},T0=Date.now();
+  return detectYn(pdf,ynList).then(function(){info.t.yn=Date.now()-T0;T0=Date.now();return imagesWithPos(pdf);}).then(function(imgs){info.t.img=Date.now()-T0;
+    imgs.forEach(function(im){
+      var si=-1;heads.forEach(function(h){if(h.page<im.page||(h.page===im.page&&h.y>=im.y1-1))si=h.si;});
+      if(si<0||!st.stationen[si])return;
+      var cap=[];
+      pdf.pages[im.page].items.forEach(function(it){
+        var sz=itemSize(it);if(sz<7.5||sz>9||!it.str.trim())return;
+        var x=it.transform[4],y=it.transform[5];
+        if(x>=im.x0-2&&x<=im.x1+1&&y<im.y0+1&&y>im.y0-22)cap.push({str:it.str,x:x,y:y,w:it.width,sz:sz});
+      });
+      cap.sort(function(a,b){return b.y-a.y||a.x-b.x;});
+      st.stationen[si].fotos.push({src:im.src,text:joinItems(cap).replace(/[\ue000-\uf8ff]/g,function(c){return puaMap[c]||'?';})});info.photos++;
+    });
+    return {state:st,info:info,mode:'text'};
+  });
+}
+function readPdf(file){
+  var TO=Date.now();
+  return openPdf(file).then(function(pdf){
+    window.__tOpen=Date.now()-TO;var raw=findPayload(pdf);window.__tFind=Date.now()-TO;
+    if(raw)return unpackPayload(raw).then(function(obj){return applyPayload(obj,pdf).then(function(r){r.mode='exakt';return r;});});
+    return parseLegacy(pdf);
+  });
+}
 
 /* ---------- Pflichtfelder + Druck ---------- */
 function missing(){
@@ -526,14 +883,16 @@ function doPrint(force){
   }
   if(printing)return;printing=true;
   var btn=$('#bPrint'),lbl=btn.textContent;btn.disabled=true;btn.textContent='Fotos werden vorbereitet …';
-  preparePrint();
   var done=function(){
     /* zwei Frames warten, damit der Browser die Druckansicht fertig aufgebaut hat */
     requestAnimationFrame(function(){requestAnimationFrame(function(){
       btn.disabled=false;btn.textContent=lbl;printing=false;window.print();
     });});
   };
-  Promise.race([Promise.all([warmFotos(),waitPrintImages()]),new Promise(function(r){setTimeout(r,8000);})]).then(done,done);
+  refreshPayload().then(function(){
+    preparePrint();
+    return Promise.race([Promise.all([warmFotos(),waitPrintImages()]),new Promise(function(r){setTimeout(r,8000);})]);
+  }).then(done,done);
 }
 var printing=false;
 $('#bPrint').addEventListener('click',function(){doPrint(false);});
@@ -586,7 +945,7 @@ function buildPrint(){
   h+='</div><h2 class="sec gap">Bemerkung zu Kundendaten</h2><div class="pnote">'+esc(k.bem)+'</div>';
   h+='<h2 class="sec gap">Dokument</h2><div class="pg">'+pField(KF.ersteller,k.ersteller,pw)+pField(KF.datum,k.datum,pw)+pField(KF.revision,k.revision,pw)+'</div></section>';
   state.stationen.forEach(function(s,i){h+=buildStation(s,i,pw);});
-  return h+'</td></tr></tbody></table>';
+  return h+pdfDataHTML()+'</td></tr></tbody></table>';
 }
 
 /* ---------- Hersteller-Liste ---------- */
@@ -635,7 +994,9 @@ try{
   if(raw){var o=JSON.parse(raw);state=adopt(o.daten);restoredAt=o.t;bannerOpen=true;}
 }catch(e){state=null;}
 if(!state)state=newState();
-window.__stb={get state(){return state;},buildPrint:buildPrint,render:render,adopt:adopt,warm:warmFotos,set:function(s){state=adopt(s);render();warmFotos();}};
+$('#chkPw').addEventListener('change',function(){refreshPayload();});
+refreshPayload();
+window.__stb={clearPayload:function(){pdfPayload=null;},refresh:refreshPayload,readPdf:readPdf,get state(){return state;},buildPrint:buildPrint,render:render,adopt:adopt,warm:warmFotos,set:function(s){state=adopt(s);render();warmFotos();}};
 render();
 })();
 </script>
